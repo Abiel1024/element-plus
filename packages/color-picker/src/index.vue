@@ -85,46 +85,35 @@
 </template>
 
 <script lang="ts">
-import { defineComponent,computed,ref,nextTick,reactive,watch,provide,inject, onMounted } from 'vue'
+import {
+  defineComponent, computed, ref,
+  nextTick, reactive, watch,
+  provide,inject, onMounted,
+} from 'vue'
 import type { ComputedRef } from '@vue/reactivity'
-import ClickOutside from '@element-plus/directives/click-outside'
+import { ClickOutside } from '@element-plus/directives'
 import Color from './color'
 import SvPanel from './components/sv-panel.vue'
 import HueSlider from './components/hue-slider.vue'
 import AlphaSlider from './components/alpha-slider.vue'
 import Predefine from './components/predefine.vue'
-import ElPopper from '@element-plus/popper/src/index.vue'
-import ElButton from '@element-plus/button/src/button.vue'
-import ElInput from '@element-plus/input/src/index.vue'
-
+import { Popper as ElPopper } from '@element-plus/popper'
+import { Button as ElButton } from '@element-plus/button'
+import { Input as ElInput } from '@element-plus/input'
 import { t } from '@element-plus/locale'
 import { UPDATE_MODEL_EVENT }  from '@element-plus/utils/constants'
-const OPTIONS_KEY = Symbol()
+import { useGlobalConfig } from '@element-plus/utils/util'
+import { isValidComponentSize } from '@element-plus/utils/validators'
+import { elFormKey, elFormItemKey } from '@element-plus/form'
 
-interface IELEMENT {
-  size?: string
-}
-interface IElForm {
-  size?: string
-  disabled?: boolean
-}
-interface IELFormItem {
-  elFormItemSize?: string
-}
+import type { PropType } from 'vue'
+import type { ElFormContext, ElFormItemContext } from '@element-plus/form'
 
 interface IUseOptions {
   currentColor: ComputedRef<string>
 }
 
-interface IProps {
-  modelValue?: string
-  showAlpha?: boolean
-  colorFormat?: string
-  disabled?: boolean
-  size?: string
-  popperClass?: string
-  predefine?: Array<string>
-}
+const OPTIONS_KEY = Symbol()
 
 export const useOptions = () => {
   return inject<IUseOptions>(OPTIONS_KEY)
@@ -149,7 +138,10 @@ export default defineComponent( {
     showAlpha: Boolean,
     colorFormat: String,
     disabled: Boolean,
-    size: String,
+    size: {
+      type: String as PropType<ComponentSize>,
+      validator: isValidComponentSize,
+    },
     popperClass: String,
     predefine: Array,
   },
@@ -158,10 +150,11 @@ export default defineComponent( {
     'active-change': null,
     [UPDATE_MODEL_EVENT]: null,
   },
-  setup(props: IProps, { emit }) {
-    const ELEMENT: IELEMENT = {}
-    const elForm:IElForm = {}
-    const elFormItem:IELFormItem = {}
+  setup(props, { emit }) {
+    const ELEMENT = useGlobalConfig()
+    const elForm = inject(elFormKey, {} as ElFormContext)
+    const elFormItem = inject(elFormItemKey, {} as ElFormItemContext)
+
     const hue = ref(null)
     const svPanel = ref(null)
     const alpha = ref(null)
@@ -182,13 +175,10 @@ export default defineComponent( {
       return displayedRgb(color, props.showAlpha)
     })
     const colorSize = computed(() => {
-      return props.size || elFormItemSize.value || (ELEMENT || {}).size
+      return props.size || elFormItem.size || ELEMENT.size
     })
     const colorDisabled = computed(() => {
-      return props.disabled || (elForm || {}).disabled
-    })
-    const elFormItemSize = computed(() => {
-      return (elFormItem || {}).elFormItemSize
+      return props.disabled || elForm.disabled
     })
 
     const currentColor = computed(() => {
@@ -249,6 +239,7 @@ export default defineComponent( {
       const value = color.value
       emit(UPDATE_MODEL_EVENT, value)
       emit('change', value)
+      elFormItem.formItemMitt?.emit('el.form.change', value)
       showPicker.value = false
     }
     function clear() {
@@ -256,7 +247,7 @@ export default defineComponent( {
       emit(UPDATE_MODEL_EVENT, null)
       emit('change', null)
       if (props.modelValue !== null) {
-        // todo in ElForm
+        elFormItem.formItemMitt?.emit('el.form.change', null)
       }
       resetColor()
     }
@@ -305,17 +296,3 @@ export default defineComponent( {
   },
 })
 </script>
-
-<style lang="scss" scoped>
-.el-color-picker:focus {
-  outline: none;
-}
-.hue-slider {
-  float: right;
-}
-</style>
-<style>
-.el-popper.el-color-picker__panel {
-  border-color: #ebeef5;
-}
-</style>

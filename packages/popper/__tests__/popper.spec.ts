@@ -36,6 +36,7 @@ const _mount = (props: UnknownProps = {}, slots = {}): VueWrapper<any> =>
         }),
       ...slots,
     },
+    attachTo: 'body',
   })
 
 const popperMock = jest
@@ -76,8 +77,8 @@ describe('Popper.vue', () => {
     expect(wrapper.text()).toEqual(AXIOM)
 
     wrapper = _mount({
-      appendToBody: false,
       content: AXIOM,
+      appendToBody: false,
     })
 
     expect(wrapper.text()).toEqual(AXIOM)
@@ -85,7 +86,7 @@ describe('Popper.vue', () => {
 
   test('append to body', () => {
     let wrapper = _mount()
-    expect(wrapper.find(selector).exists()).toBe(false)
+    expect(wrapper.find(selector).exists()).toBe(true)
 
     /**
      * Current layout of `ElPopper`
@@ -96,10 +97,10 @@ describe('Popper.vue', () => {
      */
 
     wrapper = _mount({
-      appendToBody: false,
+      appendToBody: true,
     })
 
-    expect(wrapper.find(selector).exists()).toBe(true)
+    expect(wrapper.find(selector).exists()).toBe(false)
   })
 
   test('should show popper when mouse entered and hide when popper left', async () => {
@@ -158,13 +159,6 @@ describe('Popper.vue', () => {
     expect(wrapper.find(selector).attributes('style')).not.toContain(
       DISPLAY_NONE,
     )
-  })
-
-  test('should add tab index to referrer', async () => {
-    const wrapper = _mount({
-      appendToBody: false,
-    })
-    expect(wrapper.find(`.${TEST_TRIGGER}`).attributes('tabindex')).toBe('0')
   })
 
   test('should initialize a new popper when component mounted', async () => {

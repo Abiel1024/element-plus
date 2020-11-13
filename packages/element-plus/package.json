@@ -25,6 +25,8 @@
     "@element-plus/timeline": "^0.0.0",
     "@element-plus/divider": "^0.0.0",
     "@element-plus/icon": "^0.0.0",
+    "@element-plus/input": "^0.0.0",
+    "@element-plus/input-number": "^0.0.0",
     "@element-plus/layout": "^0.0.0",
     "@element-plus/link": "^0.0.0",
     "@element-plus/progress": "^0.0.0",
@@ -40,8 +42,10 @@
     "@element-plus/collapse": "^0.0.0",
     "@element-plus/time-picker": "^0.0.0",
     "@element-plus/tabs": "^0.0.0",
+    "@element-plus/popconfirm": "^0.0.0",
     "@element-plus/form": "^0.0.0",
     "@element-plus/tree": "^0.0.0",
-    "@element-plus/select": "^0.0.0"
+    "@element-plus/select": "^0.0.0",
+    "@element-plus/menu": "^0.0.0"
   }
 }

@@ -1,5 +1,7 @@
-<script lang='ts'>
-import { defineComponent, h } from 'vue'
+<script lang="ts">
+import { createVNode, defineComponent, renderSlot } from 'vue'
+import { PatchFlags } from '@element-plus/utils/vnode'
+
 export default defineComponent({
   name: 'ElOverlay',
   props: {
@@ -22,7 +24,7 @@ export default defineComponent({
     // init here
     return () => {
       return props.mask
-        ? h(
+        ? createVNode(
           'div',
           {
             class: ['el-overlay', props.overlayClass],
@@ -31,27 +33,12 @@ export default defineComponent({
             },
             onClick: onMaskClick,
           },
-          slots.default?.(),
+          [renderSlot(slots, 'default')],
+          PatchFlags.STYLE | PatchFlags.CLASS | PatchFlags.PROPS,
+          ['onClick'],
         )
-        : slots.default?.()
+        : renderSlot(slots, 'default')
     }
   },
 })
 </script>
-<style>
-.el-overlay-root {
-  height: 0;
-}
-
-.el-overlay {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 2000;
-  height: 100%;
-  background-color: rgba(0,0,0,.5);
-}
-
-</style>

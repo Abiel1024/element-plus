@@ -216,12 +216,12 @@ import { t } from '@element-plus/locale'
 import {
   extractDateFormat,
   extractTimeFormat,
-} from '@element-plus/time-picker/src/common/date-utils'
+  TimePickPanel,
+} from '@element-plus/time-picker'
 import { ClickOutside } from '@element-plus/directives'
-import TimePickPanel from '@element-plus/time-picker/src/time-picker-com/panel-time-pick.vue'
 import dayjs, { Dayjs } from 'dayjs'
 import DateTable from './basic-date-table.vue'
-import ElInput from '@element-plus/input/src/index.vue'
+import { Input as ElInput } from '@element-plus/input'
 import { Button as ElButton } from '@element-plus/button'
 
 export default defineComponent({
@@ -659,8 +659,3 @@ export default defineComponent({
   },
 })
 </script>
-<style scoped>
-.el-time-panel {
-  position: absolute;
-}
-</style>

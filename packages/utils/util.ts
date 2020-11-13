@@ -1,4 +1,4 @@
-import { isEmpty, castArray, isEqual } from 'lodash'
+import { getCurrentInstance } from 'vue'
 
 import {
   isObject,
@@ -16,7 +16,6 @@ import {
 import isServer from './isServer'
 import type { AnyFunction } from './types'
 import type { Ref } from 'vue'
-import { getCurrentInstance } from 'vue'
 
 export type PartialCSSStyleDeclaration = Partial<
   Pick<CSSStyleDeclaration, 'transform' | 'transition' | 'animation'>
@@ -82,8 +81,8 @@ export const escapeRegexpString = (value = ''): string =>
 
 // coerce truthy value to array
 export const coerceTruthyValueToArray = arr => {
-  if (!arr) { return [] }
-  return castArray(arr)
+  if (!arr && arr !== 0) { return [] }
+  return Array.isArray(arr) ? arr : [arr]
 }
 
 export const isIE = function(): boolean {
@@ -119,8 +118,8 @@ export const kebabCase = hyphenate
 // reexport from lodash & vue shared
 export {
   hasOwn,
-  isEmpty,
-  isEqual,
+  // isEmpty,
+  // isEqual,
   isObject,
   isArray,
   isString,
@@ -146,8 +145,6 @@ export function rafThrottle<T extends AnyFunction<any>>(fn: T): AnyFunction<void
   }
 }
 
-export const objToArray = castArray
-
 export const clearTimer = (timer: Ref<TimeoutHandle>) => {
   clearTimeout(timer.value)
   timer.value = null
@@ -167,7 +164,7 @@ export function entries<T>(obj: Hash<T>): [string, T][] {
     .map((key: string) => ([key, obj[key]]))
 }
 
-export function isUndefined(val: any) {
+export function isUndefined(val: any): val is undefined {
   return val === void 0
 }
 
@@ -179,4 +176,46 @@ export function useGlobalConfig() {
     return vm.proxy.$ELEMENT
   }
   return {}
+}
+export const arrayFindIndex = function<T = any> (
+  arr: Array<T>,
+  pred: (args: T) => boolean,
+): number {
+  return arr.findIndex(pred)
+}
+
+export const arrayFind = function<T = any> (
+  arr: Array<T>,
+  pred: (args: T) => boolean,
+): any {
+  return arr.find(pred)
+}
+
+export function isEmpty(val: unknown) {
+  if (
+    !val && val !== 0 ||
+    isArray(val) && !val.length ||
+    isObject(val) && !Object.keys(val).length
+  ) return true
+
+  return false
+}
+
+export function arrayFlat(arr: unknown[]) {
+  return arr.reduce((acm: unknown[], item) => {
+    const val = Array.isArray(item) ? arrayFlat(item) : item
+    return acm.concat(val)
+  }, [])
+}
+
+export function deduplicate<T>(arr: T[]) {
+  return [...new Set(arr)]
+}
+
+/**
+ * Unwraps refed value
+ * @param ref Refed value
+ */
+export function $<T>(ref: Ref<T>)  {
+  return ref.value
 }
