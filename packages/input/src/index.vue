@@ -34,6 +34,7 @@
         :autocomplete="autocomplete"
         :tabindex="tabindex"
         :aria-label="label"
+        :placeholder="placeholder"
         @compositionstart="handleCompositionStart"
         @compositionupdate="handleCompositionUpdate"
         @compositionend="handleCompositionEnd"
@@ -168,6 +169,9 @@ export default defineComponent({
       default: 'off',
       validator: (val: string) => ['on', 'off'].includes(val),
     },
+    placeholder: {
+      type: String,
+    },
     form: {
       type: String,
       default: '',
@@ -219,7 +223,7 @@ export default defineComponent({
 
   setup(props, ctx) {
     const instance = getCurrentInstance()
-    const attrs = useAttrs(true)
+    const attrs = useAttrs()
     const $ElEMENT = useGlobalConfig()
 
     const elForm = inject(elFormKey, {} as ElFormContext)
@@ -243,7 +247,7 @@ export default defineComponent({
       resize: props.resize,
     }))
     const inputDisabled = computed(() => props.disabled || elForm.disabled)
-    const nativeInputValue = computed(() => String(props.modelValue))
+    const nativeInputValue = computed(() => (props.modelValue === null || props.modelValue === undefined) ? '' : String(props.modelValue))
     const upperLimit = computed(() => ctx.attrs.maxlength)
     const showClear = computed(() => {
       return props.clearable &&

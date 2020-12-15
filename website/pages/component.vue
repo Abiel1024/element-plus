@@ -124,12 +124,12 @@ export default {
   },
 }
 </script>
-<style lang="sass" scoped>
+<style lang="scss" scoped>
 .page-component__scroll {
   height: calc(100% - 80px);
   margin-top: 80px;
 
-  > .el-scrollbar__wrap {
+  ::v-deep( > .el-scrollbar__wrap) {
     overflow-x: auto;
   }
 }
@@ -144,13 +144,12 @@ export default {
 
   .page-component__nav {
     width: 240px;
-    position: fixed;
+    position: absolute;
     top: 0;
     bottom: 0;
-    margin-top: 80px;
     transition: padding-top .3s;
 
-    > .el-scrollbar__wrap {
+    ::v-deep( > .el-scrollbar__wrap) {
       height: 100%;
       overflow-x: auto;
     }
