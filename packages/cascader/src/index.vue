@@ -2,10 +2,11 @@
   <el-popper
     ref="popper"
     v-model:visible="popperVisible"
-    trigger="manual"
+    manual-mode
     placement="bottom-start"
     :popper-class="`el-cascader__dropdown ${popperClass}`"
     :popper-options="popperOptions"
+    :stop-popper-mouse-event="false"
     transition="el-zoom-in-top"
     :gpu-acceleration="false"
     effect="light"
@@ -14,7 +15,7 @@
   >
     <template #trigger>
       <div
-        v-clickoutside="() => togglePopperVisible(false)"
+        v-clickoutside:[popperPaneRef]="() => togglePopperVisible(false)"
         :class="[
           'el-cascader',
           realSize && `el-cascader--${realSize}`,
@@ -250,7 +251,7 @@ export default defineComponent({
     let inputInitialHeight = 0
     let pressDeleteCount = 0
 
-    const $ElEMENT = useGlobalConfig()
+    const $ELEMENT = useGlobalConfig()
     const elForm = inject(elFormKey, {} as ElFormContext)
     const elFormItem = inject(elFormItemKey, {} as ElFormItemContext)
 
@@ -268,7 +269,7 @@ export default defineComponent({
     const suggestions: Ref<CascaderNode[]> = ref([])
 
     const isDisabled = computed(() => props.disabled || elForm.disabled)
-    const realSize: ComputedRef<string> = computed(() => props.size || elFormItem.size || $ElEMENT.size)
+    const realSize: ComputedRef<string> = computed(() => props.size || elFormItem.size || $ELEMENT.size)
     const tagSize = computed(() => ['small', 'mini'].includes(realSize.value) ? 'mini' : 'small')
     const multiple = computed(() => !!props.props.multiple)
     const readonly = computed(() => !props.filterable || multiple.value)
@@ -301,6 +302,10 @@ export default defineComponent({
         emit(CHANGE_EVENT, val)
         elFormItem.formItemMitt?.emit('el.form.change', [val])
       },
+    })
+
+    const popperPaneRef = computed(() => {
+      return popper.value?.popperRef
     })
 
     const togglePopperVisible = (visible?: boolean) => {
@@ -499,6 +504,7 @@ export default defineComponent({
 
       if (isPromise(passed)) {
         passed.then(calculateSuggestions)
+          .catch(() => { /* prevent log error */ })
       } else if (passed !== false) {
         calculateSuggestions()
       } else {
@@ -539,6 +545,7 @@ export default defineComponent({
     return {
       popperOptions,
       popper,
+      popperPaneRef,
       input,
       tagWrapper,
       panel,

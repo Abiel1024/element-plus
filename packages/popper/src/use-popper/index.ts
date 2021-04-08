@@ -21,13 +21,22 @@ import type {
   RefElement,
 } from './defaults'
 
-type ElementType = ComponentPublicInstance | HTMLElement
+export type ElementType = ComponentPublicInstance | HTMLElement
+export type EmitType = 'update:visible' | 'after-enter' | 'after-leave' | 'before-enter' | 'before-leave'
+
+export interface PopperEvents {
+  onClick?: (e: Event) => void
+  onMouseenter?: (e: Event) => void
+  onMouseleave?: (e: Event) => void
+  onFocus?: (e: Event) => void
+  onBlur?: (e: Event) => void
+}
 
 export const DEFAULT_TRIGGER = ['hover']
 export const UPDATE_VISIBLE_EVENT = 'update:visible'
 export default function(
   props: IPopperOptions,
-  { emit }: SetupContext<string[]>,
+  { emit }: SetupContext<EmitType[]>,
 ) {
   const arrowRef = ref<RefElement>(null)
   const triggerRef = ref(null) as Ref<ElementType>
@@ -69,10 +78,10 @@ export default function(
   })
 
   function _show() {
-    if (props.hideAfter > 0) {
+    if (props.autoClose > 0) {
       hideTimer = window.setTimeout(() => {
         _hide()
-      }, props.hideAfter)
+      }, props.autoClose)
     }
     visibility.value = true
   }
@@ -101,10 +110,10 @@ export default function(
   const hide = () => {
     if (isManualMode()) return
     clearTimers()
-    if (props.closeDelay > 0) {
+    if (props.hideAfter > 0) {
       hideTimer = window.setTimeout(() => {
         close()
-      }, props.closeDelay)
+      }, props.hideAfter)
     } else {
       close()
     }
@@ -164,13 +173,7 @@ export default function(
     popperInstance = null
   }
 
-  const events = {} as {
-    onClick?: (e: Event) => void
-    onMouseEnter?: (e: Event) => void
-    onMouseLeave?: (e: Event) => void
-    onFocus?: (e: Event) => void
-    onBlur?: (e: Event) => void
-  }
+  const events = {} as PopperEvents
 
   function update() {
     if (!$(visibility)) {
@@ -232,27 +235,18 @@ export default function(
       }
     }
 
-    const mapEvents = (t: TriggerType) => {
-      switch (t) {
-        case 'click': {
-          events.onClick = popperEventsHandler
-          break
-        }
-        case 'hover': {
-          events.onMouseEnter = popperEventsHandler
-          events.onMouseLeave = popperEventsHandler
-          break
-        }
-        case 'focus': {
-          events.onFocus = popperEventsHandler
-          events.onBlur = popperEventsHandler
-          break
-        }
-        default: {
-          break
-        }
-      }
+    const triggerEventsMap: Partial<Record<TriggerType, (keyof PopperEvents)[]>> = {
+      click: ['onClick'],
+      hover: ['onMouseenter', 'onMouseleave'],
+      focus: ['onFocus', 'onBlur'],
     }
+
+    const mapEvents = (t: TriggerType) => {
+      triggerEventsMap[t].forEach(event => {
+        events[event] = popperEventsHandler
+      })
+    }
+
     if (isArray(props.trigger)) {
       Object.values(props.trigger).map(mapEvents)
     } else {

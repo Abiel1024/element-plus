@@ -40,20 +40,12 @@
         @set-drag-visible="setDragVisible"
       />
     </div>
-    <div
-      ref="bodyWrapper"
-      :class="[
-        layout.scrollX.value
-          ? `is-scrolling-${scrollPosition}`
-          : 'is-scrolling-none',
-      ]"
-      :style="[bodyHeight]"
-      class="el-table__body-wrapper"
-    >
+    <div ref="bodyWrapper" :style="[bodyHeight]" class="el-table__body-wrapper">
       <table-body
         :context="context"
         :highlight="highlightCurrentRow"
         :row-class-name="rowClassName"
+        :tooltip-effect="tooltipEffect"
         :row-style="rowStyle"
         :store="store"
         :stripe="stripe"
@@ -138,6 +130,7 @@
         <table-body
           :highlight="highlightCurrentRow"
           :row-class-name="rowClassName"
+          :tooltip-effect="tooltipEffect"
           :row-style="rowStyle"
           :store="store"
           :stripe="stripe"
@@ -211,6 +204,7 @@
         <table-body
           :highlight="highlightCurrentRow"
           :row-class-name="rowClassName"
+          :tooltip-effect="tooltipEffect"
           :row-style="rowStyle"
           :store="store"
           :stripe="stripe"
@@ -261,7 +255,7 @@
 </template>
 
 <script lang='ts'>
-import { defineComponent, getCurrentInstance, computed } from 'vue'
+import { defineComponent, getCurrentInstance } from 'vue'
 import { createStore } from './store/helper'
 import { t } from '@element-plus/locale'
 import { Mousewheel } from '@element-plus/directives'
@@ -387,14 +381,6 @@ export default defineComponent({
     })
     table.layout = layout
 
-    const shouldUpdateHeight = computed(() => {
-      return (
-        props.height ||
-          props.maxHeight ||
-          store.states.fixedColumns.value.length > 0 ||
-          store.states.rightFixedColumns.value.length > 0
-      )
-    })
     /**
        * open functions
        */
@@ -406,9 +392,8 @@ export default defineComponent({
       toggleAllSelection,
       toggleRowExpansion,
       clearSort,
-      doLayout,
       sort,
-    } = useUtils(store, layout, shouldUpdateHeight)
+    } = useUtils(store)
     const {
       isHidden,
       renderExpanded,
@@ -425,8 +410,8 @@ export default defineComponent({
       resizeProxyVisible,
       bodyWidth,
       resizeState,
-      scrollPosition,
-    } = useStyle(props, layout, store, table, doLayout)
+      doLayout,
+    } = useStyle(props, layout, store, table)
 
     const debouncedUpdateLayout = debounce(() => doLayout(), 50)
 
@@ -450,7 +435,6 @@ export default defineComponent({
       resizeProxyVisible,
       resizeState,
       isGroup,
-      scrollPosition,
       bodyWidth,
       bodyHeight,
       emptyBlockStyle,

@@ -6,7 +6,6 @@ import { renderPopper, renderTrigger, renderArrow } from '@element-plus/popper'
 import { ClickOutside } from '@element-plus/directives'
 import { warn } from '@element-plus/utils/error'
 import { renderBlock, renderIf, PatchFlags } from '@element-plus/utils/vnode'
-import { stop } from '@element-plus/utils/dom'
 import usePopover, { SHOW_EVENT, HIDE_EVENT } from './usePopover'
 
 import type { PropType } from 'vue'
@@ -46,10 +45,11 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    tabindex: Number,
   },
   emits,
   setup(props, ctx) {
-    if (process.env.NODE_EVN !== 'production' && props.visible && !ctx.slots.reference) {
+    if (process.env.NODE_ENV !== 'production' && props.visible && !ctx.slots.reference) {
       warn(NAME, `
         You cannot init popover without given reference
       `)
@@ -79,6 +79,7 @@ export default defineComponent({
       showArrow,
       transition,
       visibility,
+      tabindex,
     } = this
 
     const kls = [
@@ -94,11 +95,11 @@ export default defineComponent({
       popperStyle: popperStyle,
       popperId,
       visibility,
-      onMouseEnter: onPopperMouseEnter,
-      onMouseLeave: onPopperMouseLeave,
+      onMouseenter: onPopperMouseEnter,
+      onMouseleave: onPopperMouseLeave,
       onAfterEnter,
       onAfterLeave,
-      stopPopperMouseEvent: true,
+      stopPopperMouseEvent: false,
     }, [
       title,
       content,
@@ -111,8 +112,7 @@ export default defineComponent({
     const _trigger = trigger ? renderTrigger(trigger, {
       ariaDescribedby: popperId,
       ref: 'triggerRef',
-      onMouseDown: stop,
-      onMouseUp: stop,
+      tabindex,
       ...events,
     }) : createCommentVNode('v-if', true)
 

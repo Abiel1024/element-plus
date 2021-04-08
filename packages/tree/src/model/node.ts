@@ -1,3 +1,4 @@
+import { reactive } from 'vue'
 import { markNodeData, NODE_KEY } from './util'
 import TreeStore from './tree-store'
 
@@ -83,6 +84,7 @@ export default class Node {
   store: TreeStore;
   isLeafByUser: boolean;
   isLeaf: boolean;
+  canFocus: boolean;
 
   level: number;
   loaded: boolean;
@@ -99,6 +101,7 @@ export default class Node {
     this.parent = null
     this.visible = true
     this.isCurrent = false
+    this.canFocus = false
 
     for (const name in options) {
       if (options.hasOwnProperty(name)) {
@@ -115,7 +118,9 @@ export default class Node {
     if (this.parent) {
       this.level = this.parent.level + 1
     }
+  }
 
+  initialize() {
     const store = this.store
     if (!store) {
       throw new Error('[Node]store is required!')
@@ -135,6 +140,7 @@ export default class Node {
 
       if (store.defaultExpandAll) {
         this.expanded = true
+        this.canFocus = true
       }
     } else if (this.level > 0 && store.lazy && store.defaultExpandAll) {
       this.expand()
@@ -161,6 +167,7 @@ export default class Node {
     }
 
     this.updateLeafState()
+    if(this.parent && (this.level === 1 || this.parent.expanded === true)) this.canFocus = true
   }
 
   setData(data: TreeNodeData): void {
@@ -248,7 +255,10 @@ export default class Node {
         parent: this,
         store: this.store,
       })
-      child = new Node(child as TreeNodeOptions)
+      child = reactive(new Node(child as TreeNodeOptions))
+      if (child instanceof Node) {
+        child.initialize()
+      }
     }
 
     (child as Node).level = this.level + 1
@@ -323,6 +333,9 @@ export default class Node {
       }
       this.expanded = true
       if (callback) callback()
+      this.childNodes.forEach(item => {
+        item.canFocus = true
+      })
     }
 
     if (this.shouldLoadData()) {
@@ -349,6 +362,9 @@ export default class Node {
 
   collapse(): void {
     this.expanded = false
+    this.childNodes.forEach(item => {
+      item.canFocus = false
+    })
   }
 
   shouldLoadData(): boolean {

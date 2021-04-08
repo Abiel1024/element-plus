@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { sleep } from '@element-plus/test-utils'
 import Pagination from '../src/index'
-import { nextTick } from 'vue'
+import { nextTick, ref, h } from 'vue'
 
 const TIME_OUT = 100
 
@@ -18,6 +18,61 @@ describe('Pagination.vue', () => {
     expect(wrapper.find('.el-pagination__jump').exists()).toBe(false)
     expect(wrapper.find('.el-pagination__rightwrapper').exists()).toBe(false)
     expect(wrapper.find('.el-pagination__total').exists()).toBe(false)
+  })
+
+  test('change layout value', async () => {
+    const layout = ref('prev, pager, next')
+
+    const Comp = {
+      setup() {
+        return () => {
+          return h(Pagination, {
+            class: 'pagination-wrapper',
+            layout: layout.value,
+          })
+        }
+      },
+    }
+    const wrapper = mount(Comp)
+
+    expect(wrapper.find('button.btn-prev').exists()).toBe(true)
+    expect(wrapper.find('ul.el-pager').exists()).toBe(true)
+    expect(wrapper.find('button.btn-next').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper').exists()).toBe(false)
+
+    layout.value = 'prev, pager, next, ->'
+    await nextTick()
+    expect(wrapper.find('button.btn-prev').exists()).toBe(true)
+    expect(wrapper.find('ul.el-pager').exists()).toBe(true)
+    expect(wrapper.find('button.btn-next').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper').exists()).toBe(false)
+
+    layout.value = 'prev, pager, next, ->, jumper'
+    await nextTick()
+    expect(wrapper.find('button.btn-prev').exists()).toBe(true)
+    expect(wrapper.find('ul.el-pager').exists()).toBe(true)
+    expect(wrapper.find('button.btn-next').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper .el-pagination__jump').exists()).toBe(true)
+
+    layout.value = 'prev, pager, next, ->, jumper, sizes'
+    await nextTick()
+    expect(wrapper.find('button.btn-prev').exists()).toBe(true)
+    expect(wrapper.find('ul.el-pager').exists()).toBe(true)
+    expect(wrapper.find('button.btn-next').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper .el-pagination__jump').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper .el-pagination__sizes').exists()).toBe(true)
+
+    layout.value = 'prev, pager, next, ->, jumper, sizes, total'
+    await nextTick()
+    expect(wrapper.find('button.btn-prev').exists()).toBe(true)
+    expect(wrapper.find('ul.el-pager').exists()).toBe(true)
+    expect(wrapper.find('button.btn-next').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper .el-pagination__jump').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper .el-pagination__sizes').exists()).toBe(true)
+    expect(wrapper.find('.el-pagination__rightwrapper .el-pagination__total').exists()).toBe(true)
   })
 
   test('slot', () => {
@@ -192,7 +247,8 @@ describe('click pager', () => {
     expect(wrapper.find('.btn-quickprev.more').exists()).toBe(true)
     expect(wrapper.find('.btn-quicknext.more').exists()).toBe(false)
   })
-  test('should emit change size evt', async () => {
+
+  test('should emit change size evt and update pageSize', async () => {
     const onSizeChange = jest.fn()
     const wrapper = mount({
       components: {
@@ -200,22 +256,31 @@ describe('click pager', () => {
       },
       template: `
         <el-pagination
+          popper-class="select-dropdown-klass"
           @size-change="onSizeChange"
+          v-model:page-size="pageSize"
          :total="1000"
          :page-sizes="[100, 200, 300]"
          layout="sizes, pager"
-         :page-size="100"/>
+        />
       `,
       methods: {
         onSizeChange,
       },
+      data(){
+        return {
+          pageSize: 200,
+        }
+      },
     })
 
-    const items = document.querySelectorAll('.el-select-dropdown__item:not(.selected)');
+    const items = document.querySelector('.select-dropdown-klass').querySelectorAll('.el-select-dropdown__item:not(.selected)');
     (items[0] as HTMLOptionElement)?.click()
     expect(onSizeChange).toHaveBeenCalled()
+    expect(wrapper.vm.pageSize).toBe(100)
     expect(wrapper.findComponent(Pagination).emitted()).toHaveProperty('size-change')
   })
+
 
   test('should handle total size change', async () => {
     const onCurrentChange = jest.fn()

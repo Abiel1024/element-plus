@@ -1,11 +1,9 @@
-import {
-  PopperInstance,
-  IPopperOptions,
-} from '@element-plus/popper'
+import { PopperInstance, IPopperOptions } from '@element-plus/popper'
 import { getValueByPath } from '@element-plus/utils/util'
 import { off, on } from '@element-plus/utils/dom'
 import { createPopper } from '@popperjs/core'
 import { AnyObject, TableColumnCtx } from './table.type'
+import PopupManager from '@element-plus/utils/popup-manager'
 
 export const getCell = function(event: Event): HTMLElement {
   let cell = event.target as HTMLElement
@@ -300,15 +298,20 @@ export function walkTreeNode(
   })
 }
 
+export let removePopper
+
 export function createTablePopper(
   trigger: HTMLElement,
   popperContent: string,
   popperOptions: Partial<IPopperOptions>,
+  tooltipEffect: string,
 ) {
   function renderContent(): HTMLDivElement {
+    const isLight = tooltipEffect === 'light'
     const content = document.createElement('div')
-    content.className = 'el-tooltip__popper is-dark'
+    content.className = `el-popper ${isLight ? 'is-light' : 'is-dark'}`
     content.innerHTML = popperContent
+    content.style.zIndex = String(PopupManager.nextZIndex())
     document.body.appendChild(content)
     return content
   }
@@ -321,14 +324,14 @@ export function createTablePopper(
   function showPopper() {
     popperInstance && popperInstance.update()
   }
-  function removePopper() {
+  removePopper = function removePopper() {
     try {
       popperInstance && popperInstance.destroy()
       content && document.body.removeChild(content)
       off(trigger, 'mouseenter', showPopper)
+      off(trigger, 'mouseleave', removePopper)
     } catch {}
   }
-  off(trigger, 'mouseleave', removePopper)
   let popperInstance: Nullable<PopperInstance> = null
   const content = renderContent()
   const arrow = renderArrow()
@@ -354,4 +357,5 @@ export function createTablePopper(
   })
   on(trigger, 'mouseenter', showPopper)
   on(trigger, 'mouseleave', removePopper)
+  return popperInstance
 }
